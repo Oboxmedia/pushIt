@@ -1,0 +1,16 @@
+{
+    "name": "oboxmedia/push-it",
+    "description": "rsync abstraction for deployment",
+    "require": {
+    },
+    "require-dev": {
+        "webtrendi/clapp": "^1.0",
+        "symfony/process": "^4.2"
+    },
+    "authors": [
+        {
+            "name": "Patrick Forget",
+            "email": "patforg@oboxmedia.com"
+        }
+    ]
+}
