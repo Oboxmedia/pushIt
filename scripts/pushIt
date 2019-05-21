@@ -4,7 +4,12 @@
 $basePath = dirname(__DIR__);
 $currentPath = getcwd();
 
-require_once "{$basePath}/vendor/autoload.php";
+foreach (["{$basePath}/vendor/autoload.php", __DIR__ . "/../autoload.php"] as $file) {
+  if (file_exists($file)) {
+    require_once($file);
+    break;
+  } //if
+} // foreach
 
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -114,8 +119,7 @@ if ($excludeFile !== null) {
   $syncCmd .= " --exclude-from=$excludeFile";
 } // if
 $syncCmd .= " $source $destination";
-echo $previewCmd = $syncCmd . " --verbose --dry-run";
-echo PHP_EOL;
+$previewCmd = $syncCmd . " --verbose --dry-run";
 
 $previewProcess = new Process($previewCmd);
 $previewProcess->run();
