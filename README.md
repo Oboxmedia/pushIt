@@ -1,6 +1,8 @@
 # pustIt
 Rsync abastraction and deployment tool.
 
+Alows you to define various sync operations via a config file and simplify deployment from staging to production.
+
 ## Installation
 
 **Option 1: Install via composer**
@@ -32,7 +34,7 @@ excludeFile=/path/to/your/excludeFile.txt
 ```
 
 **Step 2**
-Defaint a excludeFile.txt this will list files to ignore when synching
+Define a excludeFile.txt this will list files to ignore when synching
 
 For example:
 ```
@@ -65,6 +67,8 @@ The `[default]` section enable you to define global options that are used in all
 ### Deploy Target configuration directives
 
 **source**: source folder to sync (same as rsync source)
+
 **destination**: destination folder to sync to  (same as rsync destination)
+
 **excludeFile**: text file that contains file patterns to ignore (same as rsync `--exclude-from`)
 
