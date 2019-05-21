@@ -1,6 +1,9 @@
 {
     "name": "oboxmedia/push-it",
     "description": "rsync abstraction for deployment",
+    "bin": [
+      "scripts/pushIt"
+    ],
     "require": {
     },
     "require-dev": {
