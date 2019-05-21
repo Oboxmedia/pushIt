@@ -1,0 +1,146 @@
+<?php
+# vim: set syntax=php:
+
+$basePath = dirname(__DIR__);
+$currentPath = getcwd();
+
+require_once "{$basePath}/vendor/autoload.php";
+
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
+// Define accepted arguments
+$definitions = new \Clapp\CommandLineArgumentDefinition(array(
+    "help|h"      => "Shows help message",
+    "target|t=s" => "Deploy target",
+    "list|l" => "List targets",
+));
+
+// Filter arguments based and validate according to definitions
+$filter = new \Clapp\CommandArgumentFilter($definitions, $argv);
+
+// Retrieve parameter if set
+if ($filter->getParam('h') !== false) {
+    echo baseName($argv[0]) .' usage:' . PHP_EOL;
+    echo $definitions->getUsage();
+    exit();
+} //if
+
+$lookupDir = $currentPath;
+$configFile = '';
+$found = false;
+while (!$found && strlen($lookupDir) > 0) {
+  $configFile = $lookupDir .'/.pushIt.conf'; 
+  if (file_exists($configFile)) {
+    $found = true;
+  } else if ($lookupDir === '/') {
+    $lookupDir =  '';
+  } else {
+    $lookupDir = dirname($lookupDir);
+  } // if
+} //while
+
+if (!$found) {
+  fwrite(STDERR, 'No config found' . PHP_EOL);
+  exit(1);
+} //if
+
+echo "Using config file: {$configFile}" . PHP_EOL;
+
+$config = parse_ini_file($configFile, true);
+$defaultTarget = isset($config['default']['defaultTarget']) ? $config['default']['defaultTarget'] : 'none';
+
+if ($filter->getParam('list') !== false) {
+  $targets = array_keys($config);
+  echo "Default Target: ${defaultTarget}" . PHP_EOL;
+  echo PHP_EOL;
+
+  echo "Available Targets:" . PHP_EOL;
+  echo implode(PHP_EOL, array_filter($targets, function ($targetName) {
+    return $targetName !== 'default'; 
+  }));
+  echo PHP_EOL;
+  exit();
+} //if
+
+$currentTarget = $filter->getParam('t');
+if ($currentTarget === false && $defaultTarget !== 'none') {
+  $currentTarget = $defaultTarget;
+} //if
+
+if ($currentTarget === false) {
+  fwrite(STDERR, 'You must specify a target' . PHP_EOL);
+  exit(1);
+} else if (!isset($config[$currentTarget])) {
+  fwrite(STDERR, "Target not found ${currentTarget}" . PHP_EOL);
+  exit(1);
+} //if
+
+echo "Using target: {$currentTarget}" . PHP_EOL;
+echo PHP_EOL;
+
+$targetConfig = $config[$currentTarget];
+foreach (['source', 'destination', 'excludeFile'] as $var) {
+  ${$var} = isset($targetConfig[$var]) ? $targetConfig[$var] : null;
+} //foreach
+
+if ($source === null || strlen($source) === 0) {
+  fwrite(STDERR, 'You must specify a source dir' . PHP_EOL);
+  exit(1);
+} else if (!file_exists($source)) {
+  fwrite(STDERR, "Source dir not found ${source}" . PHP_EOL);
+  exit(1);
+} //if
+
+if ($destination === null || strlen($destination) === 0) {
+  fwrite(STDERR, 'You must specify a destination dir' . PHP_EOL);
+  exit(1);
+} else if (!file_exists($destination)) {
+  fwrite(STDERR, "Destination dir not found ${destination}" . PHP_EOL);
+  exit(1);
+} //if
+
+if ($excludeFile !== null && strlen($excludeFile) === 0) {
+  $excludeFile = null;
+} // if 
+
+if ($excludeFile !== null && !file_exists($excludeFile)) {
+  fwrite(STDERR, "Exclude file not found ${excludeFile}" . PHP_EOL);
+  exit(1);
+} //if
+
+$syncCmd="sudo /usr/bin/rsync -ar --delete";
+if ($excludeFile !== null) {
+  $syncCmd .= " --exclude-from=$excludeFile";
+} // if
+$syncCmd .= " $source $destination";
+echo $previewCmd = $syncCmd . " --verbose --dry-run";
+echo PHP_EOL;
+
+$previewProcess = new Process($previewCmd);
+$previewProcess->run();
+
+echo $previewProcess->getOutput();
+
+while (true) {
+  echo "Sync to destination? [yes/no] ";
+  $confirm = fgets(STDIN);
+  $confirm = trim($confirm, PHP_EOL);
+  switch ($confirm) {
+    case 'yes':
+    case 'no':
+    break 2;
+
+    default:
+      echo "Invalid input. Expecting yes or no" . PHP_EOL;;
+      break;
+  } // switch
+} // while
+
+
+if ($confirm === 'yes') {
+  $process = new Process($syncCmd);
+  $process->run();
+
+  echo $process->getOutput();
+} // if
