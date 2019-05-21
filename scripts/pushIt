@@ -4,7 +4,7 @@
 $basePath = dirname(__DIR__);
 $currentPath = getcwd();
 
-foreach (["{$basePath}/vendor/autoload.php", __DIR__ . "/../autoload.php"] as $file) {
+foreach (["{$basePath}/vendor/autoload.php", __DIR__ . "/../../../autoload.php"] as $file) {
   if (file_exists($file)) {
     require_once($file);
     break;
