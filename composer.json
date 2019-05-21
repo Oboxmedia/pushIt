@@ -5,7 +5,7 @@
       "scripts/pushIt"
     ],
     "require": {
-        "webtrendi/clapp": "^1.0",
+        "webtrendi/clapp": "dev-master",
         "symfony/process": "^4.2"
     },
     "authors": [
