@@ -31,6 +31,8 @@ defaultTarget=app
 source=/path/to/your/staging.project/
 destination=/path/to/your/production.project/
 excludeFile=/path/to/your/excludeFile.txt
+# optionally add extra switches to rsync
+extraSwitches = --inplace
 ```
 
 **Step 2**
