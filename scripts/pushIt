@@ -93,7 +93,7 @@ echo "Using target: {$currentTarget}" . PHP_EOL;
 echo PHP_EOL;
 
 $targetConfig = $config[$currentTarget];
-foreach (['source', 'destination', 'excludeFile'] as $var) {
+foreach (['source', 'destination', 'excludeFile', 'extraSwitches'] as $var) {
   ${$var} = isset($targetConfig[$var]) ? $targetConfig[$var] : null;
 } //foreach
 
@@ -122,7 +122,10 @@ if ($excludeFile !== null && !file_exists($excludeFile)) {
   exit(1);
 } //if
 
-$syncCmd="sudo /usr/bin/rsync -ar --delete";
+if ($extraSwitches === null) {
+  $extraSwitches = "";
+} // if
+$syncCmd="sudo /usr/bin/rsync -ar --delete $extraSwitches";
 if ($excludeFile !== null) {
   $syncCmd .= " --exclude-from=$excludeFile";
 } // if
@@ -134,6 +137,10 @@ $previewProcess->setTimeout(0);
 $previewProcess->run();
 
 echo $previewProcess->getOutput();
+
+echo "Command:"
+echo $syncCmd;
+echo "\n";
 
 while (true) {
   echo "Sync to destination? [yes/no] ";
